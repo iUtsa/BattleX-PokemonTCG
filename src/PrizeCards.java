@@ -1,5 +1,5 @@
-import javax.swing.*;
 import java.util.ArrayList;
+import javax.swing.*;
 
 public class PrizeCards {
     private ArrayList<Card> prizeCards;
