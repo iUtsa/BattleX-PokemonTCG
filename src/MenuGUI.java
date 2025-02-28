@@ -63,47 +63,91 @@ public class MenuGUI extends JFrame {
     private void showGameRules() {
         String rulesText = """
             <html>
-            <h2 style='text-align: center;'>Pokémon Card Game Rules</h2>
-            <br>
-            <b>1. Game Setup:</b><br>
-            - Each player starts with a shuffled deck.<br>
-            - Players draw 7 cards at the beginning.<br>
-            - A coin flip decides who plays first.<br>
-            - The first player <b>cannot attack</b> on their first turn.<br><br>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; color: #333; padding: 10px; }
+                    h2 { text-align: center; color: #e63946; font-size: 24px; margin-bottom: 10px; }
+                    b { color: #1d3557; font-size: 16px; }
+                    ul { padding-left: 20px; }
+                    li { margin-bottom: 5px; }
+                    .highlight { color: #e76f51; font-weight: bold; }
+                    .section { background: #f1faee; padding: 8px; border-radius: 8px; margin-bottom: 10px; }
+                    .centered { text-align: center; font-weight: bold; font-size: 18px; color: #2a9d8f; }
+                </style>
+            </head>
+            <body>
+                <h2>Pokémon Card Game Rules</h2>
 
-            <b>2. Turn Structure:</b><br>
-            - Each turn consists of:<br>
-              • <b>Draw</b> a card (Mandatory).<br>
-              • <b>Play Pokémon</b>, attach Energy, or use Trainer cards (Optional).<br>
-              • <b>Attack</b> the opponent’s Active Pokémon (If possible).<br>
-              • <b>End turn</b>, switching to the other player.<br><br>
+                <div class='section'>
+                    <b>1. Game Setup:</b>
+                    <ul>
+                        <li>Each player starts with a shuffled deck.</li>
+                        <li>Players draw <span class='highlight'>7 cards</span> at the beginning.</li>
+                        <li>A coin flip decides who plays first.</li>
+                        <li>The first player <span class='highlight'>cannot attack</span> on their first turn.</li>
+                    </ul>
+                </div>
 
-            <b>3. Playing Cards:</b><br>
-            - Pokémon must be placed on the <b>bench</b> before being used in battle.<br>
-            - Energy cards are <b>attached</b> to Pokémon for attacks.<br>
-            - Trainer cards provide <b>special effects</b>.<br><br>
+                <div class='section'>
+                    <b>2. Turn Structure:</b>
+                    <ul>
+                        <li>Each turn consists of:
+                            <ul>
+                                <li><span class='highlight'>Draw</span> a card (Mandatory).</li>
+                                <li><span class='highlight'>Play Pokémon</span>, attach Energy, or use Trainer cards (Optional).</li>
+                                <li><span class='highlight'>Attack</span> the opponent’s Pokémon (If possible).</li>
+                                <li><span class='highlight'>End turn</span>, switching to the other player.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
 
-            <b>4. Battle Rules:</b><br>
-            - Players attack using their <b>Active Pokémon</b>.<br>
-            - If a Pokémon’s <b>HP reaches 0</b>, it is knocked out.<br>
-            - The winner collects a <b>Prize Card</b> after knocking out an opponent’s Pokémon.<br><br>
+                <div class='section'>
+                    <b>3. Playing Cards:</b>
+                    <ul>
+                        <li>Pokémon must be placed on the <span class='highlight'>bench</span> before being used in battle.</li>
+                        <li>Energy cards are <span class='highlight'>attached</span> to Pokémon for attacks.</li>
+                        <li>Trainer cards provide <span class='highlight'>special effects</span>.</li>
+                    </ul>
+                </div>
 
-            <b>5. Winning Conditions:</b><br>
-            - A player wins if:<br>
-              • They collect <b>all 3 Prize Cards</b>.<br>
-              • The opponent has <b>no Pokémon left</b>.<br>
-              • The opponent runs out of cards to <b>draw</b>.<br><br>
+                <div class='section'>
+                    <b>4. Battle Rules:</b>
+                    <ul>
+                        <li>Players attack using their <span class='highlight'>Active Pokémon</span>.</li>
+                        <li>If a Pokémon’s <span class='highlight'>HP reaches 0</span>, it is knocked out.</li>
+                        <li>The winner collects a <span class='highlight'>Prize Card</span> after knocking out an opponent’s Pokémon.</li>
+                    </ul>
+                </div>
 
-            <b>6. Special Mechanics:</b><br>
-            - Status effects like <b>Paralyze, Burn, and Sleep</b> impact gameplay.<br>
-            - Players must manage <b>Energy Cards</b> effectively.<br>
-            - <b>Prize Cards</b> are drawn after every knockout.<br><br>
+                <div class='section'>
+                    <b>5. Winning Conditions:</b>
+                    <ul>
+                        <li>A player wins if:
+                            <ul>
+                                <li>They collect <span class='highlight'>all 3 Prize Cards</span>.</li>
+                                <li>The opponent has <span class='highlight'>no Pokémon left</span>.</li>
+                                <li>The opponent runs out of cards to <span class='highlight'>draw</span>.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
 
-            <center><b>🎉 Enjoy the game! 🎉</b></center>
+                <div class='section'>
+                    <b>6. Special Mechanics:</b>
+                    <ul>
+                        <li>Status effects like <span class='highlight'>Paralyze, Burn, and Sleep</span> impact gameplay.</li>
+                        <li>Players must manage <span class='highlight'>Energy Cards</span> effectively.</li>
+                        <li><span class='highlight'>Prize Cards</span> are drawn after every knockout.</li>
+                    </ul>
+                </div>
+
+                <p class='centered'>🎉 Enjoy the game and be the very best! 🎉</p>
+            </body>
             </html>
             """;
 
-        // Use JTextPane to render HTML
+        // Use JTextPane to render styled HTML
         JTextPane textPane = new JTextPane();
         textPane.setContentType("text/html");
         textPane.setText(rulesText);
@@ -111,9 +155,8 @@ public class MenuGUI extends JFrame {
         textPane.setOpaque(false);
 
         JScrollPane scrollPane = new JScrollPane(textPane);
-        scrollPane.setPreferredSize(new Dimension(450, 350));
+        scrollPane.setPreferredSize(new Dimension(500, 400));
 
         JOptionPane.showMessageDialog(this, scrollPane, "Game Rules", JOptionPane.INFORMATION_MESSAGE);
     }
-
 }
