@@ -1,5 +1,5 @@
-import javax.swing.*;
 import java.util.Random;
+import javax.swing.*;
 
 public class CoinFlip {
     private static final Random random = new Random();
