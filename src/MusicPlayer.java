@@ -1,6 +1,6 @@
-import javax.sound.sampled.*;
 import java.io.IOException;
 import java.net.URL;
+import javax.sound.sampled.*;
 
 public class MusicPlayer {
     private static Clip clip;
