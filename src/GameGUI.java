@@ -1,7 +1,6 @@
-import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.*;
+import javax.swing.*;
 
 public class GameGUI extends JFrame {
     private Player player1, player2;
