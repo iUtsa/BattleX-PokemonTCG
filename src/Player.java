@@ -2,15 +2,21 @@ import java.util.*;
 
 public class Player {
     private String name;
-    private ArrayList<Card> hand;
+    private ArrayList<Card> hand, pool;
     private ArrayList<PokemonCard> bench;
     private PokemonCard[] active;
+
+    private Deck deck;
 
     public Player(String name) {
         this.name = name;
         this.hand = new ArrayList<>();
         this.bench = new ArrayList<>();
+        this.deck = new Deck();
+        this.pool = new ArrayList<>();
         active = new PokemonCard[1];
+
+        initializePool();
     }
 
     public String getName() {
@@ -27,12 +33,12 @@ public class Player {
 
     public void drawInitialHand(Deck deck) {
         for (int i = 0; i < 7; i++) {
-            drawCard(deck);
+            drawCard(this.deck);
         }
     }
 
     public void prebattle(Deck deck){
-        drawInitialHand(deck);
+        drawInitialHand(this.deck);
 
     }
     public String attackOpponent(Player opponent) {
@@ -51,7 +57,12 @@ public class Player {
     public void drawCard(Deck deck) {
         if (deck.getDeckSize() > 0) {
             hand.add(deck.drawCard());
+
         }
+    }
+
+    public int getPrizeAmount(){
+        return pool.size();
     }
 
     public String displayHand() {
@@ -78,6 +89,40 @@ public class Player {
         }
         return null;
     }
+
+    // Method to initialize the prize pool with 1 card
+    public void initializePool() {
+        pool = new ArrayList<>(); // ✅ Initialize prize pool list
+
+        for (int i = 0; i < 3; i++) { // ✅ Ensure exactly 3 prize cards are added
+            if (deck.getDeckSize() > 0) {
+                Card prizeCard = deck.drawCard(); // ✅ Draw one card from deck
+                pool.add(prizeCard);  // ✅ Store in prize pool
+            } else {
+                System.out.println("Deck is empty! No prize card can be added.");
+                break; // ✅ Prevent infinite loop if deck runs out
+            }
+        }
+    }
+
+
+    // Method to claim the prize card
+    public void claimPrizeCard() {
+        if (!pool.isEmpty()) {
+            Card claimedCard = pool.remove(0); // ✅ Take the prize card
+            hand.add(claimedCard); // ✅ Add it to player's hand
+            System.out.println(name + " claimed their prize card: " + claimedCard.getName());
+        } else {
+            System.out.println("No prize card available to claim.");
+        }
+    }
+
+    // Getter for pool (needed for UI updates)
+    public ArrayList<Card> getPool() {
+        return pool;
+    }
+
+
 
     public PokemonCard playPokemonToBenchUI() {
         for (int i = 0; i < hand.size(); i++) {
@@ -160,5 +205,6 @@ public class Player {
             active[0] = null; // No Pokémon left
         }
     }
+
 
 }
