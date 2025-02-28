@@ -7,6 +7,8 @@ public class Attack {
         this.damage = damage;
     }
 
+
+
     public int getDamage() {
         return damage;
     }
