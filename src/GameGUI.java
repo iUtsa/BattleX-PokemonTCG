@@ -5,14 +5,19 @@ import java.util.*;
 
 public class GameGUI extends JFrame {
     private Player player1, player2;
-    private Deck deck;
+    private Deck player1Deck, player2Deck;
+
     private JLabel playerTurnLabel, playerCardsLabel, playerBenchLabel;
     private JButton playPokemonButton, attackButton, playTrainerButton;
     private JButton addPokemonFieldButton, addPokemonBenchButton, attachEnergyButton, drawCardButton, endTurnButton, exitPlayButton;
-    private JPanel battlefieldPanel;
+
     private boolean isPlayer1Turn;
-    private JPanel activePokemonPanel;
-    private JPanel benchPanel;
+
+    private JPanel benchPanel, activePokemonPanel, battlefieldPanel;
+    private JPanel deckCounterPanel;
+    private JLabel deckCounterLabel, prizeCardLabel;
+
+
 
     private boolean hasDrawnCard = false;
 
@@ -100,7 +105,9 @@ public class GameGUI extends JFrame {
             getContentPane().removeAll();
             player1 = new Player(player1Name);
             player2 = new Player(player2Name);
-            deck = new Deck();
+
+            player1Deck = new Deck();
+            player2Deck = new Deck();
 
             revalidate();
             repaint();
@@ -234,8 +241,8 @@ public class GameGUI extends JFrame {
 
 
     private void startGame() {
-        distributeInitialHands(player1);
-        distributeInitialHands(player2);
+        distributeInitialHands(player1, player1Deck);
+        distributeInitialHands(player2, player2Deck);
 
         // ✅ Remove previous UI components
         getContentPane().removeAll();
@@ -258,6 +265,8 @@ public class GameGUI extends JFrame {
 
         // ✅ Ensure UI Components Are Properly Initialized Before Using setupGameBoard()
         setupGameBoard();
+        // ✅ Update deck counter in UI
+        updateDeckCounterDisplay();
 
         // ✅ Update labels with actual data
         updateHandAndBenchDisplay();
@@ -266,6 +275,13 @@ public class GameGUI extends JFrame {
         revalidate();
         repaint();
         setVisible(true);
+    }
+
+    private void updateDeckCounterDisplay() {
+        Deck currentDeck = isPlayer1Turn ? player1Deck : player2Deck;
+        if (deckCounterLabel != null) {
+            deckCounterLabel.setText("Deck: " + currentDeck.getDeckSize());
+        }
     }
 
 
@@ -291,6 +307,25 @@ public class GameGUI extends JFrame {
         JPanel topPanel = new JPanel(new GridLayout(2, 1));
         topPanel.setOpaque(false);
         topPanel.setBounds(50, 20, 700, 100);
+
+        // ✅ Deck Counter Label (Top Right)
+
+        Deck currentDeck = isPlayer1Turn ? player1Deck : player2Deck;
+        deckCounterLabel = new JLabel("Deck: " + currentDeck.getDeckSize());
+        deckCounterLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        deckCounterLabel.setForeground(Color.WHITE);
+        deckCounterLabel.setBounds(680, 20, 100, 30); // Position it at top-right corner
+        layeredPane.add(deckCounterLabel, Integer.valueOf(2)); // Add on top of background
+
+        //prizepool label
+
+        int poolAmount = getCurrentPlayer().getPrizeAmount();
+        prizeCardLabel = new JLabel("Prize Card: " + poolAmount);
+        prizeCardLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        prizeCardLabel.setForeground(Color.YELLOW);
+        prizeCardLabel.setBounds(680, 43, 200, 30);
+        layeredPane.add(prizeCardLabel, Integer.valueOf(2));
+
 
         playerTurnLabel.setFont(new Font("Arial", Font.BOLD, 35));
         playerTurnLabel.setForeground(Color.RED);
@@ -440,34 +475,20 @@ public class GameGUI extends JFrame {
     }
 
     //  Distributes Initial Hands (Ensuring at Least 1 Pokémon)
-    private void distributeInitialHands(Player player) {
+    private void distributeInitialHands(Player player, Deck playerDeck) {
         ArrayList<Card> tempHand = new ArrayList<>();
         boolean hasPokemon = false;
 
         while (tempHand.size() < 7) {
-            Card drawnCard = deck.drawCard();
+            Card drawnCard = playerDeck.drawCard(); // ✅ Now draws from the correct deck
             if (drawnCard instanceof PokemonCard) {
                 hasPokemon = true;
             }
             tempHand.add(drawnCard);
         }
-
-        // ✅ If no Pokémon is in hand, reshuffle & retry
-        while (!hasPokemon) {
-            tempHand.clear();
-            deck.shuffle();
-            for (int i = 0; i < 7; i++) {
-                Card drawnCard = deck.drawCard();
-                if (drawnCard instanceof PokemonCard) {
-                    hasPokemon = true;
-                }
-                tempHand.add(drawnCard);
-            }
-        }
-
         player.setHand(tempHand);
-        updateHandAndBenchDisplay(); // ✅ Ensure hand updates
     }
+
 
     private void updateActivePokemonDisplay() {
         if (activePokemonPanel == null) return; // Prevent NullPointerException
@@ -509,7 +530,13 @@ public class GameGUI extends JFrame {
         updateBenchDisplay(); // Ensure Bench Pokémon panel is updated
     }
 
-
+    private void updatePrizeCardDisplay(Player player) {
+        if (!player.getPool().isEmpty()) {
+            prizeCardLabel.setText("Prize Card: " + player.getPool().get(0).getName());
+        } else {
+            prizeCardLabel.setText("Prize Card: 0");
+        }
+    }
     private void updateBenchDisplay() {
         if (benchPanel == null) return; // Prevent NullPointerException
 
@@ -589,6 +616,7 @@ public class GameGUI extends JFrame {
             case "Full Heal":
                 if (activePokemon != null) {
                     activePokemon.setStatusEffect("None"); // ✅ Removes status effects
+                    activePokemon.heal(currentPlayer.getActive().getHp());
                     JOptionPane.showMessageDialog(this, activePokemon.getName() + " is fully healed from status effects!", "Full Heal Used", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(this, "No Active Pokémon to heal!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -596,8 +624,10 @@ public class GameGUI extends JFrame {
                 break;
 
             case "Professor Oak":
+                Deck currentDeck = isPlayer1Turn ? player1Deck : player2Deck;
                 for (int i = 0; i < 3; i++) {
-                    currentPlayer.drawCard(deck); // ✅ Draws 3 new cards
+                    currentPlayer.drawCard(currentDeck); // ✅ Draws 3 new cards
+                    deckCounterLabel.setText("Deck: " + currentDeck.getDeckSize());
                 }
                 JOptionPane.showMessageDialog(this, "Drew 3 cards from the deck!", "Professor Oak Used", JOptionPane.INFORMATION_MESSAGE);
                 break;
@@ -616,31 +646,17 @@ public class GameGUI extends JFrame {
     private void playPokemon() {
         Player currentPlayer = getCurrentPlayer();
 
-        // Find a Pokémon card in hand
-        PokemonCard selectedPokemon = null;
-        for (Card card : new ArrayList<>(currentPlayer.getHand())) { // Check hand for a Pokémon
-            if (card instanceof PokemonCard) {
-                selectedPokemon = (PokemonCard) card;
-                break;
-            }
-        }
-
-        if (selectedPokemon == null) {
-            JOptionPane.showMessageDialog(this, "No Pokémon available to play!", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
         // ✅ Ensure there is NO active Pokémon before setting one
-        if (currentPlayer.getActive() == null) {
-            currentPlayer.setActivePokemon(selectedPokemon);
-            JOptionPane.showMessageDialog(this, selectedPokemon.getName() + " is now the active Pokémon!");
-        } else {
-            JOptionPane.showMessageDialog(this, "You already have an active Pokémon! Use 'Add to Bench' instead.", "Error", JOptionPane.ERROR_MESSAGE);
+        if (currentPlayer.getActive() != null) {
+            JOptionPane.showMessageDialog(this,
+                    "You already have an active Pokémon! Use 'To Bench' to add more Pokémon.",
+                    "Cannot Replace Active Pokémon",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // ✅ Remove Pokémon from hand after playing
-        currentPlayer.getHand().remove(selectedPokemon);
+        // ✅ Send out Pokémon from hand (Only if none is active)
+        sendOutPokemonFromHand(currentPlayer);
 
         // ✅ Update UI
         updateHandAndBenchDisplay();
@@ -712,7 +728,6 @@ public class GameGUI extends JFrame {
         // If NO is chosen, do nothing, and the game continues
     }
 
-
     private void attack() {
         Player currentPlayer = getCurrentPlayer();
         Player opponent = (currentPlayer == player1) ? player2 : player1;
@@ -730,15 +745,27 @@ public class GameGUI extends JFrame {
             return;
         }
 
-        // Ensure attacker has enough energy
         if (attacker.getEnergy() <= 0) {
             JOptionPane.showMessageDialog(this, attacker.getName() + " has no Energy! Attach an Energy card before attacking.",
                     "Energy Required", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // Choose Attack
-        String[] attackOptions = {"Basic Attack (" + attacker.getAttackDamage() + " DMG)", "Special Attack"};
+        // Get attack details dynamically
+        Attack attack1 = attacker.getAttack1();
+        Attack attack2 = attacker.getAttack2();
+
+        String attack1Name = attack1.getName();
+        String attack2Name = attack2.getName();
+        int attack1Damage = attack1.getDamage();
+        int attack2Damage = attack2.getDamage();
+
+        // Prompt the user to choose an attack
+        String[] attackOptions = {
+                attack1Name + " (" + attack1Damage + " DMG)",
+                attack2Name + " (" + attack2Damage + " DMG)"
+        };
+
         int attackChoice = JOptionPane.showOptionDialog(this,
                 "Choose an attack for " + attacker.getName() + ":",
                 "Select Attack",
@@ -749,75 +776,96 @@ public class GameGUI extends JFrame {
                 attackOptions[0]);
 
         if (attackChoice == -1) {
-            return; // Cancel attack if no option selected
+            return; // Cancel attack if no option is selected
         }
 
-        int damageDealt = 0;
-
+        int damageDealt;
         if (attackChoice == 0) {
-            damageDealt = attacker.getAttackDamage();
-            attacker.attack(defender);
+            damageDealt = attacker.getAttack1().getDamage();
+            attacker.useAttack(defender);
         } else {
-            // Perform special attack
-            if (attacker instanceof MewTwo) {
-                MewTwo mewtwo = (MewTwo) attacker;
-                if (attacker.getEnergy() >= 2) {
-                    damageDealt = mewtwo.getAttackDamage();
-                    mewtwo.useAttack2(defender);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Not enough Energy for Special Attack!", "Attack Failed", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            } else if (attacker instanceof Charmander) {
-                Charmander charmander = (Charmander) attacker;
-                if (attacker.getEnergy() >= 2) {
-                    damageDealt = 45;
-                    charmander.useFireBlast(defender);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Not enough Energy for Fire Blast!", "Attack Failed", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            } else if (attacker instanceof Golem) {
-                Golem golem = (Golem) attacker;
-                if (attacker.getEnergy() >= 2) {
-                    damageDealt = 50;
-                    golem.useStoneEdge(defender);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Not enough Energy for Stone Edge!", "Attack Failed", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
+            damageDealt = attacker.getAttack2().getDamage();
+            attacker.useAttack2(defender);
         }
 
-        // Reduce Attacker's Energy
-        attacker.minusEnergy(1);
+        JOptionPane.showMessageDialog(this,
+                attacker.getName() + " attacked " + defender.getName() + " for " + damageDealt + " damage!\n"
+                        + defender.getName() + " now has " + defender.getHp() + " HP left.",
+                "Attack Successful",
+                JOptionPane.INFORMATION_MESSAGE);
 
-        // Notify Players About Attack Result
-        JOptionPane.showMessageDialog(this, attacker.getName() + " attacked " + defender.getName() + " for " + damageDealt + " damage!\n"
-                + defender.getName() + " now has " + defender.getHp() + " HP left.", "Attack Successful", JOptionPane.INFORMATION_MESSAGE);
-
-        // Check if the opponent’s Pokémon fainted
+        // **Check if opponent’s Pokémon fainted**
         if (defender.getHp() <= 0) {
             JOptionPane.showMessageDialog(this, defender.getName() + " has fainted!", "Defeated!", JOptionPane.INFORMATION_MESSAGE);
-            opponent.switchToNextPokemon();
-            updateActivePokemonDisplay();
 
-            // ✅ Check if opponent has no Pokémon left (GAME OVER)
-            if (opponent.getActive() == null && opponent.getBench().isEmpty()) {
+            // ✅ Award the winner a prize card
+            currentPlayer.claimPrizeCard();
+
+            // ✅ Update UI for prize pool and deck
+            updatePrizeCardDisplay(currentPlayer);
+            updateDeckCounterDisplay(); // ✅ Update deck counter after drawing prize card
+
+            // ✅ Check if the current player has taken all 3 prize cards
+            if (currentPlayer.getPrizeAmount() == 0) {
                 endGame(currentPlayer);
                 return;
             }
+
+            // ✅ Check if opponent has Pokémon in the bench
+            if (!opponent.getBench().isEmpty()) {
+                opponent.switchToNextPokemon();
+                JOptionPane.showMessageDialog(this,
+                        opponent.getName() + " sent out " + opponent.getActive().getName() + "!",
+                        "New Active Pokémon",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                // ✅ End turn so opponent can play
+                endTurn();
+                return;
+            }
+
+            // ✅ If no Pokémon in bench, check hand for any playable Pokémon
+            if (opponent.getHand().stream().anyMatch(card -> card instanceof PokemonCard)) {
+                JOptionPane.showMessageDialog(this,
+                        opponent.getName() + " must select a Pokémon from their hand!",
+                        "Choose New Active Pokémon",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                sendOutPokemonFromHand(opponent);
+
+                // ✅ End turn so opponent can play their new Pokémon
+                endTurn();
+                return;
+            }
+
+            // ✅ If no Pokémon anywhere, declare the loss
+            JOptionPane.showMessageDialog(this,
+                    opponent.getName() + " has no Pokémon left! " + currentPlayer.getName() + " wins!",
+                    "Game Over",
+                    JOptionPane.INFORMATION_MESSAGE);
+            endGame(currentPlayer);
+            return;
         }
 
-        // Update UI after attack
+        // ✅ Update UI after attack
         updateHandAndBenchDisplay();
         updateActivePokemonDisplay();
         updateBenchDisplay();
+
+        // ✅ End Turn After Attack
+        endTurn();
     }
 
 
 
 
+    public boolean checkPrizePool(){
+        Player currentPlayer = getCurrentPlayer();
+        if (currentPlayer.getPrizeAmount() <= 0){
+            return true;
+        }
+        return false;
+    }
 
     private void addPokemonToField() {
         String message = getCurrentPlayer().addPokemonToField();
@@ -837,30 +885,23 @@ public class GameGUI extends JFrame {
 
         Player currentPlayer = getCurrentPlayer();
         Player opponent = (currentPlayer == player1) ? player2 : player1;
+        Deck currentDeck = (currentPlayer == player1) ? player1Deck : player2Deck; // ✅ Use correct deck
 
-        // ✅ If deck is empty, the game ends immediately
-        if (deck.getDeckSize() == 0) {
-            JOptionPane.showMessageDialog(this,
-                    currentPlayer.getName() + " has no cards left to draw! " + opponent.getName() + " wins!",
-                    "Game Over",
-                    JOptionPane.INFORMATION_MESSAGE);
+        if (currentDeck.getDeckSize() == 0) {
+            JOptionPane.showMessageDialog(this, currentPlayer.getName() + " has no cards left to draw! " + opponent.getName() + " wins!", "Game Over", JOptionPane.INFORMATION_MESSAGE);
             endGame(opponent);
             return;
         }
 
-        // ✅ Draw one card from the deck
-        Card drawnCard = deck.drawCard();
+        Card drawnCard = currentDeck.drawCard(); // ✅ Correct deck
         currentPlayer.getHand().add(drawnCard);
 
-        JOptionPane.showMessageDialog(this, currentPlayer.getName() + " drew a card: " + drawnCard.getName(),
-                "Card Drawn", JOptionPane.INFORMATION_MESSAGE);
-
-        // ✅ Update UI to reflect the newly drawn card
+        JOptionPane.showMessageDialog(this, currentPlayer.getName() + " drew a card: " + drawnCard.getName(), "Card Drawn", JOptionPane.INFORMATION_MESSAGE);
         updateHandAndBenchDisplay();
-
-        // ✅ Set the flag so player can't draw again this turn
         hasDrawnCard = true;
+        deckCounterLabel.setText("Deck: " + currentDeck.getDeckSize());
     }
+
 
 
     private void checkForNoPokemonLoss(Player player) {
@@ -978,6 +1019,11 @@ public class GameGUI extends JFrame {
     }
 
     private void sendOutPokemonFromHand(Player player) {
+        // ✅ If player already has an active Pokémon, do nothing
+        if (player.getActive() != null) {
+            return;
+        }
+
         // ✅ Filter Pokémon from hand
         ArrayList<PokemonCard> handPokemon = new ArrayList<>();
         for (Card card : player.getHand()) {
@@ -1009,11 +1055,9 @@ public class GameGUI extends JFrame {
         if (chosenPokemon != null) {
             for (PokemonCard pokemon : handPokemon) {
                 if (pokemon.getName().equals(chosenPokemon)) {
-                    // ✅ Ensure it's assigned to the **correct** player
                     player.setActivePokemon(pokemon);
                     player.getHand().remove(pokemon);
 
-                    // ✅ Confirm Pokémon assignment with the correct player
                     JOptionPane.showMessageDialog(this,
                             player.getName() + " sent out " + pokemon.getName() + "!",
                             "New Active Pokémon",
@@ -1031,12 +1075,15 @@ public class GameGUI extends JFrame {
 
 
 
+
     private void endTurn() {
         // ✅ Toggle the turn
         this.hasDrawnCard = false;
         isPlayer1Turn = !isPlayer1Turn;
         Player currentPlayer = getCurrentPlayer();
         Player opponent = (currentPlayer == player1) ? player2 : player1;
+        Deck currentDeck = isPlayer1Turn ? player1Deck : player2Deck;
+        deckCounterLabel.setText("Deck: " + currentDeck.getDeckSize());
 
         // ✅ Update UI to show whose turn it is (officially switched)
         playerTurnLabel.setText("Turn: " + currentPlayer.getName());
