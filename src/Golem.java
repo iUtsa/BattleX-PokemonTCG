@@ -1,4 +1,3 @@
-import java.util.*;
 import javax.swing.*;
 
 public class Golem extends PokemonCard {
@@ -6,47 +5,53 @@ public class Golem extends PokemonCard {
     private Attack stoneEdge;
 
     public Golem() {
-        super("Golem", 88, "Rock", 30, "rock.png");
-        this.earthQuake = new Attack("Earthquake", 20);
-        this.stoneEdge = new Attack("Stone Edge", 30);
+        super("Golem", 88, "Rock", 30, "rock.png",
+                new Attack("Earthquake", 20),
+                new Attack("Stone Edge", 30));
+
+        // Assign attacks from the superclass
+        this.earthQuake = getAttack1();
+        this.stoneEdge = getAttack2();
     }
 
-    public void useEarthquake(PokemonCard opponent) {
+    @Override
+    public void useAttack(PokemonCard opponent) {
         if (getEnergy() >= 1) {
-            int damageDealt = earthQuake.getDamage(); // ✅ Get correct damage
+            int damageDealt = earthQuake.getDamage();
             earthQuake.performAttack(this, opponent);
-            opponent.takeDamage(damageDealt); // ✅ Ensure HP is reduced
+            opponent.takeDamage(damageDealt);
 
-            JOptionPane.showMessageDialog(null, opponent.getName() + " took " + damageDealt + " damage from Earthquake!",
-                    "Earthquake Attack", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, this.getName() + " used Earthquake and dealt " + damageDealt + " damage to " + opponent.getName(),
+                    "Attack Info", JOptionPane.INFORMATION_MESSAGE);
 
-            this.minusEnergy(1); // ✅ Reduce energy only if attack is performed
+            this.minusEnergy(1);
         } else {
             JOptionPane.showMessageDialog(null, this.getName() + " does not have enough Energy to use Earthquake!",
                     "Energy Required", JOptionPane.WARNING_MESSAGE);
         }
     }
 
-    public void useStoneEdge(PokemonCard opponent) {
+    @Override
+    public void useAttack2(PokemonCard opponent) {
         if (getEnergy() >= 2) {
-            int damageDealt = stoneEdge.getDamage(); // ✅ Get correct damage
+            int damageDealt = stoneEdge.getDamage();
             stoneEdge.performAttack(this, opponent);
-            opponent.takeDamage(damageDealt); // ✅ Ensure HP is reduced
+            opponent.takeDamage(damageDealt);
 
-            // ✅ 10% chance to cause **Paralyze**
             if (Math.random() < 0.1) {
                 opponent.setStatusEffect("Paralyze");
                 JOptionPane.showMessageDialog(null, opponent.getName() + " is now Paralyzed!",
                         "Paralyze Effect", JOptionPane.INFORMATION_MESSAGE);
             }
 
-            JOptionPane.showMessageDialog(null, opponent.getName() + " took " + damageDealt + " damage from Stone Edge!",
-                    "Stone Edge Attack", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, this.getName() + " used Stone Edge and dealt " + damageDealt + " damage to " + opponent.getName(),
+                    "Attack Info", JOptionPane.INFORMATION_MESSAGE);
 
-            this.minusEnergy(2); // ✅ Reduce energy only if attack is performed
+            this.minusEnergy(2);
         } else {
             JOptionPane.showMessageDialog(null, this.getName() + " does not have enough Energy to use Stone Edge!",
                     "Energy Required", JOptionPane.WARNING_MESSAGE);
         }
     }
+
 }
