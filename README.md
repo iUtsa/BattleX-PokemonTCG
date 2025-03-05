@@ -39,7 +39,7 @@ Welcome to the **Pokémon Card Game**, a turn-based card battle game built in Ja
    - Attach Energy
    - Use Trainer Cards
    - Attack opponent’s Pokémon
-7. **Winning Condition** – The first player to collect **3 Prize Cards** or defeat all opponent Pokémon wins.
+7. **Winning Condition** – The first player to collect **6 Prize Cards** or defeat all opponent Pokémon wins.
 
 ---
 
